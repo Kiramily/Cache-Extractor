@@ -1,34 +1,82 @@
 use std::{
-    fs::{copy, create_dir, read_dir},
+    env,
+    fs::{copy, create_dir, read_dir, remove_dir_all},
     io,
     path::{Path, PathBuf},
 };
 
-use rand::{thread_rng, Rng};
+use clap::{App, Arg};
 use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 
 fn main() {
-    let mut discord_cache_dir = dirs::config_dir().unwrap();
-    discord_cache_dir.push("discord");
-    discord_cache_dir.push("Cache");
-    if discord_cache_dir.exists() {
-        let files = get_files_from_cache(&discord_cache_dir).unwrap();
-        let extract_dir = get_or_create_extraction_dir().unwrap();
+    let matches = App::new("Discord Cache Extractor")
+        .version(env!("CARGO_PKG_VERSION"))
+        .arg(
+            Arg::new("output-directory")
+                .about("Defines the output Directory for the extracted Files")
+                .alias("output-dir")
+                .short('o')
+                .required(false)
+                .takes_value(true),
+        )
+        .arg(
+            Arg::new("clear-cache")
+                .about("Clear the Cache after Extracting (Discord needs to be Closed) (Use at own Risk!)")
+                .alias("clear-cache")
+                .short('c')
+                .takes_value(false),
+        )
+        .get_matches();
+
+    let cache_dir: PathBuf = [
+        dirs::config_dir()
+            .expect("Failed to get Config Directory")
+            .to_str()
+            .unwrap(),
+        "discord",
+        "cache",
+    ]
+    .iter()
+    .collect();
+
+    if cache_dir.exists() {
+        let mut output_dir: PathBuf = [env::current_dir().unwrap().to_str().unwrap(), "extracted"]
+            .iter()
+            .collect();
+
+        if let Some(arg_out_dir) = matches.value_of("output-directory") {
+            // Use the Path from the Arguments instead
+            output_dir = PathBuf::from(arg_out_dir);
+        }
+
+        if !output_dir.exists() {
+            create_dir(&output_dir).expect("Failed to create output Directory");
+        }
+
+        let files = get_files_from_cache(&cache_dir).expect("Failed to get the Cached Files");
 
         for file in files {
-            match infer::get_from_path(&file).unwrap() {
-                Some(kind) => {
-                    let mut extracted_file = PathBuf::from(&extract_dir);
-                    extracted_file.push(format!("{}.{}", rand_str(16), kind.extension()));
-                    copy(file, &extracted_file).unwrap();
-                }
-                None => {
-                    println!("Failed to get mime type for: {}", file.display())
-                }
-            }
+            copy_file(&file, &output_dir);
         }
-    } else {
-        println!("Cache directory does not exist");
+
+        if matches.is_present("clear-cache") {
+            remove_dir_all(&cache_dir).expect("Failed to clear the Cache");
+        }
+    }
+}
+
+/// Checks the Mime type and Copies the File to the Destination
+fn copy_file(cached: &PathBuf, out_dir: &PathBuf) {
+    match infer::get_from_path(&cached).expect("Can't read file") {
+        Some(kind) => {
+            let mut file = out_dir.clone();
+            file.push(format!("{}.{}", rand_str(16), kind.extension()));
+            copy(&cached, &file).expect("Failed to copy File");
+        }
+        None => {
+            println!("[!] Failed to get mime type for: {}", cached.display())
+        }
     }
 }
 
@@ -39,15 +87,6 @@ fn rand_str(size: usize) -> String {
         .take(size)
         .map(char::from)
         .collect()
-}
-
-fn get_or_create_extraction_dir() -> Result<PathBuf, io::Error> {
-    let mut path = PathBuf::from(dirs::picture_dir().unwrap());
-    path.push("extracted");
-    if !path.exists() {
-        create_dir(&path)?;
-    }
-    Ok(path)
 }
 
 /// Reads the Cache directory and filters out the Files not starting with 'f_'.

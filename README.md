@@ -4,5 +4,19 @@
 
 Extracts all the Files from discord cache to `%pictures%/extracted`
 
-## Todo
-- [ ] CLI Arguments
+
+## Usage
+```bash
+$ discord_cache_extractor <args>
+```
+
+### Example 
+```bash
+$ discord_cache_extractor --output-dir "./discord-cache"
+```
+
+## Arguments
+| Argument           | required | value  | default         |
+|--------------------|----------|--------|-----------------|
+| --output-dir \| -o | false    | String | %cwd%/extracted |
+| --clear-cache \| -c| false	| bool   | false		   |
