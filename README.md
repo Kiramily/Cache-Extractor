@@ -18,3 +18,4 @@ $ discord_cache_extractor --output-dir "./discord-cache"
 | Argument           | required | value  | default         |
 |--------------------|----------|--------|-----------------|
 | --output-dir \| -o | false    | String | %cwd%/extracted |
+| --clear-cache \| -c| false	| bool   | false		   |
