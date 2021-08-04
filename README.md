@@ -36,3 +36,6 @@ $ cache-extractor --app discord --output-dir "./discord-cache"
 | vscode-insider|
 | guilded     |
 | custom (needs input argument) |
+
+## Acknowledgements 
+* [mean bean ci template](https://github.com/XAMPPRocky/mean-bean-ci-template)
