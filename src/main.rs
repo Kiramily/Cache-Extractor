@@ -9,6 +9,22 @@ use clap::{App, Arg};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 
+const REGEX_FILE_PATTERN: &str = r"^f_";
+
+#[cfg(test)]
+mod test {
+    use regex::Regex;
+
+    use crate::REGEX_FILE_PATTERN;
+
+	#[test]
+	fn test_regex() {
+		let pattern = Regex::new(REGEX_FILE_PATTERN).unwrap();
+		assert_eq!(pattern.is_match("f_00002f"), true);
+		assert_eq!(pattern.is_match("index"), false);
+	}
+}
+
 fn main() {
     let matches = App::new("Discord Cache Extractor")
         .version(env!("CARGO_PKG_VERSION"))
@@ -41,6 +57,14 @@ fn main() {
 				.requires_if("custom", "application")
 				.takes_value(true)
 		)
+		.arg(
+			Arg::new("file-filter")
+				.about("Filename must match the Pattern")
+				.aliases(&["file-filter", "ff", "filter"])
+				.short('f')
+				.takes_value(true)
+				.default_value(REGEX_FILE_PATTERN)
+		)
         .get_matches();
 
     let apps = matches.value_of("application").unwrap().split('+');
@@ -68,12 +92,12 @@ fn main() {
                 }
             }
             _ => {
-                println!("[!] Unknown Application");
+                println!("[!] Unknown Application: {}", app);
             }
         }
 
         if start_path.exists() {
-			// TODO Copy 
+            // TODO Copy
         } else {
             println!("[!] Cache Directory missing for: {}", app)
         }
