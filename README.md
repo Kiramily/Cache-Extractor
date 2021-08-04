@@ -4,6 +4,7 @@
 
 Extracts all the Files from discord cache to `%pictures%/extracted`
 
+
 ## Usage
 ```bash
 $ discord_cache_extractor <args>
