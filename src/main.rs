@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use clap::{App, Arg};
+use clap::{App, Arg, ArgMatches};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 
@@ -17,55 +17,16 @@ mod test {
 
     use crate::REGEX_FILE_PATTERN;
 
-	#[test]
-	fn test_regex() {
-		let pattern = Regex::new(REGEX_FILE_PATTERN).unwrap();
-		assert_eq!(pattern.is_match("f_00002f"), true);
-		assert_eq!(pattern.is_match("index"), false);
-	}
+    #[test]
+    fn test_regex() {
+        let pattern = Regex::new(REGEX_FILE_PATTERN).unwrap();
+        assert_eq!(pattern.is_match("f_00002f"), true);
+        assert_eq!(pattern.is_match("index"), false);
+    }
 }
 
 fn main() {
-    let matches = App::new("Discord Cache Extractor")
-        .version(env!("CARGO_PKG_VERSION"))
-        .arg(
-            Arg::new("output-directory")
-                .about("Defines the output Directory for the extracted Files")
-                .alias("output-dir")
-                .short('o')
-                .required(false)
-                .takes_value(true),
-        )
-        .arg(
-            Arg::new("clear-cache")
-                .about("Clear the Cache after Extracting (Discord needs to be Closed) (Use at own Risk!)")
-                .alias("clear-cache")
-                .short('c')
-                .takes_value(false),
-        )
-		.arg(
-			Arg::new("application")
-				.alias("application")
-				.short('a')
-				.takes_value(true)
-				.required(true)
-		)
-		.arg(
-			Arg::new("input")
-				.alias("input")
-				.short('i')
-				.requires_if("custom", "application")
-				.takes_value(true)
-		)
-		.arg(
-			Arg::new("file-filter")
-				.about("Filename must match the Pattern")
-				.aliases(&["file-filter", "ff", "filter"])
-				.short('f')
-				.takes_value(true)
-				.default_value(REGEX_FILE_PATTERN)
-		)
-        .get_matches();
+    let matches = get_cli_arguments();
 
     let apps = matches.value_of("application").unwrap().split('+');
 
@@ -102,6 +63,49 @@ fn main() {
             println!("[!] Cache Directory missing for: {}", app)
         }
     })
+}
+
+fn get_cli_arguments() -> ArgMatches {
+    App::new("Cache Extractor")
+	.version(env!("CARGO_PKG_VERSION"))
+	.arg(
+		Arg::new("output-directory")
+			.about("Defines the output Directory for the extracted Files")
+			.alias("output-dir")
+			.short('o')
+			.required(false)
+			.takes_value(true),
+	)
+	.arg(
+		Arg::new("clear-cache")
+			.about("Clear the Cache after Extracting (Discord needs to be Closed) (Use at own Risk!)")
+			.alias("clear-cache")
+			.short('c')
+			.takes_value(false),
+	)
+	.arg(
+		Arg::new("application")
+			.alias("application")
+			.short('a')
+			.takes_value(true)
+			.required(true)
+	)
+	.arg(
+		Arg::new("input")
+			.alias("input")
+			.short('i')
+			.requires_if("custom", "application")
+			.takes_value(true)
+	)
+	.arg(
+		Arg::new("file-filter")
+			.about("Filename must match the Pattern")
+			.aliases(&["file-filter", "ff", "filter"])
+			.short('f')
+			.takes_value(true)
+			.default_value(REGEX_FILE_PATTERN)
+	)
+	.get_matches()
 }
 
 // fn main_old() {
