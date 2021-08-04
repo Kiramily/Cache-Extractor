@@ -23,7 +23,14 @@ $ cache-extractor --app discord --output-dir "./discord-cache"
 ## Arguments
 | Argument           | required | value  | default         |
 |--------------------|----------|--------|-----------------|
-| --app \| -a        | true     | String | None            |
+| --app \| -a        | true     | Application | None            |
 | --input \| -i      | false    | String | None            |
 | --output-dir \| -o | false    | String | %cwd%/extracted |
 | --clear-cache \| -c| false	| bool   | false		   |
+
+| Application |
+|-------------|
+| discord     |
+| vscode      |
+| guilded     |
+| custom (needs input argument) |
