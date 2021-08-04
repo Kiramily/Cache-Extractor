@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::{copy, create_dir, read_dir},
+    fs::{copy, create_dir, read_dir, remove_dir_all},
     io,
     path::{Path, PathBuf},
 };
@@ -14,13 +14,21 @@ fn main() {
         .version(env!("CARGO_PKG_VERSION"))
         .arg(
             Arg::new("output-directory")
+                .about("Defines the output Directory for the extracted Files")
                 .alias("output-dir")
                 .short('o')
                 .required(false)
                 .takes_value(true),
         )
+        .arg(
+            Arg::new("clear-cache")
+                .about("Clear the Cache after Extracting (Discord needs to be Closed) (Use at own Risk!)")
+                .alias("clear-cache")
+                .short('c')
+                .takes_value(false),
+        )
         .get_matches();
-	
+
     let cache_dir: PathBuf = [
         dirs::config_dir()
             .expect("Failed to get Config Directory")
@@ -38,7 +46,7 @@ fn main() {
             .collect();
 
         if let Some(arg_out_dir) = matches.value_of("output-directory") {
-			// Use the Path from the Arguments instead
+            // Use the Path from the Arguments instead
             output_dir = PathBuf::from(arg_out_dir);
         }
 
@@ -50,6 +58,10 @@ fn main() {
 
         for file in files {
             copy_file(&file, &output_dir);
+        }
+
+        if matches.is_present("clear-cache") {
+            remove_dir_all(&cache_dir).expect("Failed to clear the Cache");
         }
     }
 }
