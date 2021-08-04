@@ -27,44 +27,96 @@ fn main() {
                 .short('c')
                 .takes_value(false),
         )
+		.arg(
+			Arg::new("application")
+				.alias("application")
+				.short('a')
+				.takes_value(true)
+				.required(true)
+		)
+		.arg(
+			Arg::new("input")
+				.alias("input")
+				.short('i')
+				.requires_if("custom", "application")
+				.takes_value(true)
+		)
         .get_matches();
 
-    let cache_dir: PathBuf = [
-        dirs::config_dir()
-            .expect("Failed to get Config Directory")
-            .to_str()
-            .unwrap(),
-        "discord",
-        "cache",
-    ]
-    .iter()
-    .collect();
+    let apps = matches.value_of("application").unwrap().split('+');
 
-    if cache_dir.exists() {
-        let mut output_dir: PathBuf = [env::current_dir().unwrap().to_str().unwrap(), "extracted"]
-            .iter()
-            .collect();
+    apps.for_each(|app| {
+        let mut start_path =
+            PathBuf::from(dirs::config_dir().expect("Failed to get the config Directory"));
 
-        if let Some(arg_out_dir) = matches.value_of("output-directory") {
-            // Use the Path from the Arguments instead
-            output_dir = PathBuf::from(arg_out_dir);
+        match app {
+            "discord" => {
+                start_path.push("discord/Cache");
+            }
+            "guilded" => {
+                start_path.push("guilded/Cache");
+            }
+            "vscode" => {
+                start_path.push("Code/Cache");
+            }
+            "vscode-insider" => {
+                start_path.push("Code - Insider/Cache");
+            }
+            "custom" => {
+                if let Some(path) = matches.value_of("input") {
+                    start_path = PathBuf::from(path);
+                }
+            }
+            _ => {
+                println!("[!] Unknown Application");
+            }
         }
 
-        if !output_dir.exists() {
-            create_dir(&output_dir).expect("Failed to create output Directory");
+        if start_path.exists() {
+			// TODO Copy 
+        } else {
+            println!("[!] Cache Directory missing for: {}", app)
         }
-
-        let files = get_files_from_cache(&cache_dir).expect("Failed to get the Cached Files");
-
-        for file in files {
-            copy_file(&file, &output_dir);
-        }
-
-        if matches.is_present("clear-cache") {
-            remove_dir_all(&cache_dir).expect("Failed to clear the Cache");
-        }
-    }
+    })
 }
+
+// fn main_old() {
+// 	let cache_dir: PathBuf = [
+//         dirs::config_dir()
+//             .expect("Failed to get Config Directory")
+//             .to_str()
+//             .unwrap(),
+//         "discord",
+//         "cache",
+//     ]
+//     .iter()
+//     .collect();
+
+//     if cache_dir.exists() {
+//         let mut output_dir: PathBuf = [env::current_dir().unwrap().to_str().unwrap(), "extracted"]
+//             .iter()
+//             .collect();
+
+//         if let Some(arg_out_dir) = matches.value_of("output-directory") {
+//             // Use the Path from the Arguments instead
+//             output_dir = PathBuf::from(arg_out_dir);
+//         }
+
+//         if !output_dir.exists() {
+//             create_dir(&output_dir).expect("Failed to create output Directory");
+//         }
+
+//         let files = get_files_from_cache(&cache_dir).expect("Failed to get the Cached Files");
+
+//         for file in files {
+//             copy_file(&file, &output_dir);
+//         }
+
+//         if matches.is_present("clear-cache") {
+//             remove_dir_all(&cache_dir).expect("Failed to clear the Cache");
+//         }
+//     }
+// }
 
 /// Checks the Mime type and Copies the File to the Destination
 fn copy_file(cached: &PathBuf, out_dir: &PathBuf) {

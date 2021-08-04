@@ -1,0 +1,41 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug executable 'cache-extractor'",
+			"cargo": {
+				"args": ["build", "--bin=cache-extractor", "--package=cache_extractor"],
+				"filter": {
+					"name": "cache-extractor",
+					"kind": "bin"
+				}
+			},
+			"args": ["-a", "discord+guilded+vscode+vscode-insider+custom", "-i", "./test/Cache"],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in executable 'cache-extractor'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--bin=cache-extractor",
+					"--package=cache_extractor"
+				],
+				"filter": {
+					"name": "cache-extractor",
+					"kind": "bin"
+				}
+			},
+			"args": ["-a", "discord+guilded+vscode+vscode-insider+custom", "-i", "./test/Cache"],
+			"cwd": "${workspaceFolder}"
+		}
+	]
+}
