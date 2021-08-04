@@ -1,13 +1,15 @@
 use std::{
     env,
-    fs::{copy, create_dir, read_dir, remove_dir_all},
+    fs::{copy, create_dir, create_dir_all, read_dir, remove_dir_all},
     io,
     path::{Path, PathBuf},
 };
 
 use clap::{App, Arg, ArgMatches};
+use indicatif::{ProgressBar, ProgressStyle};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
+use regex::Regex;
 
 const REGEX_FILE_PATTERN: &str = r"^f_";
 
@@ -27,29 +29,30 @@ mod test {
 
 fn main() {
     let matches = get_cli_arguments();
-
     let apps = matches.value_of("application").unwrap().split('+');
+    let pattern = Regex::new(matches.value_of("file-filter").unwrap())
+        .expect("Failed to create Regex Pattern");
 
     apps.for_each(|app| {
-        let mut start_path =
+        let mut path =
             PathBuf::from(dirs::config_dir().expect("Failed to get the config Directory"));
 
         match app {
             "discord" => {
-                start_path.push("discord/Cache");
+                path.push("discord/Cache");
             }
             "guilded" => {
-                start_path.push("guilded/Cache");
+                path.push("guilded/Cache");
             }
             "vscode" => {
-                start_path.push("Code/Cache");
+                path.push("Code/Cache");
             }
             "vscode-insider" => {
-                start_path.push("Code - Insider/Cache");
+                path.push("Code - Insider/Cache");
             }
             "custom" => {
-                if let Some(path) = matches.value_of("input") {
-                    start_path = PathBuf::from(path);
+                if let Some(custom_path) = matches.value_of("input") {
+                    path = PathBuf::from(custom_path);
                 }
             }
             _ => {
@@ -57,8 +60,35 @@ fn main() {
             }
         }
 
-        if start_path.exists() {
-            // TODO Copy
+        if path.exists() {
+            let mut output = PathBuf::from(env::current_dir().unwrap());
+            if let Some(outdir) = matches.value_of("output-directory") {
+                output = PathBuf::from(outdir);
+            } else {
+                output.push("extracted");
+            }
+            output.push(app);
+            create_dir_all(&output).expect("Failed to create the output Directory");
+            let files =
+                read_cache(&path, &pattern).expect("Failed to get read the cache Directory");
+
+            let pb = ProgressBar::new(files.len() as u64);
+            pb.set_style(
+                ProgressStyle::default_bar()
+                    .template("{msg} {spinner:.green} [{wide_bar:.cyan/blue}] {pos:>7}/{len:7}")
+                    .progress_chars("#>-"),
+            );
+            pb.set_message(format!("{}", app));
+
+            for file in files {
+                copy_file(&file, &output);
+                pb.inc(1)
+            }
+            pb.finish_with_message(format!("{} Done.", app));
+
+            if matches.is_present("clear-cache") {
+                remove_dir_all(&path).expect("Failed to clear the Cache");
+            }
         } else {
             println!("[!] Cache Directory missing for: {}", app)
         }
@@ -108,43 +138,15 @@ fn get_cli_arguments() -> ArgMatches {
 	.get_matches()
 }
 
-// fn main_old() {
-// 	let cache_dir: PathBuf = [
-//         dirs::config_dir()
-//             .expect("Failed to get Config Directory")
-//             .to_str()
-//             .unwrap(),
-//         "discord",
-//         "cache",
-//     ]
-//     .iter()
-//     .collect();
-
-//     if cache_dir.exists() {
-//         let mut output_dir: PathBuf = [env::current_dir().unwrap().to_str().unwrap(), "extracted"]
-//             .iter()
-//             .collect();
-
-//         if let Some(arg_out_dir) = matches.value_of("output-directory") {
-//             // Use the Path from the Arguments instead
-//             output_dir = PathBuf::from(arg_out_dir);
-//         }
-
-//         if !output_dir.exists() {
-//             create_dir(&output_dir).expect("Failed to create output Directory");
-//         }
-
-//         let files = get_files_from_cache(&cache_dir).expect("Failed to get the Cached Files");
-
-//         for file in files {
-//             copy_file(&file, &output_dir);
-//         }
-
-//         if matches.is_present("clear-cache") {
-//             remove_dir_all(&cache_dir).expect("Failed to clear the Cache");
-//         }
-//     }
-// }
+fn read_cache(path: &Path, filter: &Regex) -> Result<Vec<PathBuf>, io::Error> {
+    Ok(read_dir(path)
+        .unwrap()
+        .into_iter()
+        .filter(|f| f.is_ok())
+        .map(|f| f.unwrap().path())
+        .filter(|f| filter.is_match(f.file_name().unwrap().to_str().unwrap()))
+        .collect())
+}
 
 /// Checks the Mime type and Copies the File to the Destination
 fn copy_file(cached: &PathBuf, out_dir: &PathBuf) {
@@ -154,9 +156,7 @@ fn copy_file(cached: &PathBuf, out_dir: &PathBuf) {
             file.push(format!("{}.{}", rand_str(16), kind.extension()));
             copy(&cached, &file).expect("Failed to copy File");
         }
-        None => {
-            println!("[!] Failed to get mime type for: {}", cached.display())
-        }
+        None => {}
     }
 }
 
@@ -167,15 +167,4 @@ fn rand_str(size: usize) -> String {
         .take(size)
         .map(char::from)
         .collect()
-}
-
-/// Reads the Cache directory and filters out the Files not starting with 'f_'.
-fn get_files_from_cache(path: &Path) -> Result<Vec<PathBuf>, io::Error> {
-    Ok(read_dir(path)
-        .unwrap()
-        .into_iter()
-        .filter(|f| f.is_ok())
-        .map(|f| f.unwrap().path())
-        .filter(|f| f.file_name().unwrap().to_str().unwrap().starts_with("f_"))
-        .collect())
 }
