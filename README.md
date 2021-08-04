@@ -5,5 +5,4 @@
 Extracts all the Files from discord cache to `%pictures%/extracted`
 
 ## Todo
-- [ ] Unix Support  
 - [ ] CLI Arguments
