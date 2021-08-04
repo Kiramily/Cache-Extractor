@@ -1,8 +1,8 @@
 # Cache extractor
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![example workflow](https://github.com/Kiramily/Discord-Cache-Extractor/actions/workflows/build.yml/badge.svg)
+![Build](https://github.com/Kiramily/Cache-Extractor/actions/workflows/build.yml/badge.svg)
 
-Extracts all the Files from Electron's cache
+Extract all files from electron Application's cache
 
 ## Supported Applications
 * [Discord](https://discord.com/)
@@ -32,5 +32,6 @@ $ cache-extractor --app discord --output-dir "./discord-cache"
 |-------------|
 | discord     |
 | vscode      |
+| vscode-insider|
 | guilded     |
 | custom (needs input argument) |

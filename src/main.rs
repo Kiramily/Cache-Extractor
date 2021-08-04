@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::{copy, create_dir, create_dir_all, read_dir, remove_dir_all},
+    fs::{copy, create_dir_all, read_dir, remove_dir_all},
     io,
     path::{Path, PathBuf},
 };
