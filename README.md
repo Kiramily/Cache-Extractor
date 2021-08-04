@@ -1,6 +1,7 @@
 # Cache extractor
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/github/license/Kiramily/Cache-Extractor)](https://opensource.org/licenses/MIT)
 ![Build](https://github.com/Kiramily/Cache-Extractor/actions/workflows/build.yml/badge.svg)
+[![Version](https://img.shields.io/github/v/tag/Kiramily/Cache-Extractor)](https://github.com/Kiramily/Cache-Extractor/releases)
 
 Extract all files from electron Application's cache
 
