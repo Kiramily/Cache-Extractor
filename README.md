@@ -27,6 +27,7 @@ $ cache-extractor --app discord --output-dir "./discord-cache"
 | --input \| -i      | false    | String | None            |
 | --output-dir \| -o | false    | String | %cwd%/extracted |
 | --clear-cache \| -c| false	| bool   | false		   |
+| -file-filter \| -f | false    | Regex String | ^f_       |
 
 | Application |
 |-------------|
