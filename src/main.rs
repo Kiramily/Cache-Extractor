@@ -48,7 +48,7 @@ fn main() {
                 path.push("Code/Cache");
             }
             "vscode-insider" => {
-                path.push("Code - Insider/Cache");
+                path.push("Code - Insiders/Cache");
             }
             "custom" => {
                 if let Some(custom_path) = matches.value_of("input") {
@@ -68,7 +68,9 @@ fn main() {
                 output.push("extracted");
             }
             output.push(app);
+
             create_dir_all(&output).expect("Failed to create the output Directory");
+
             let files =
                 read_cache(&path, &pattern).expect("Failed to get read the cache Directory");
 
@@ -84,6 +86,7 @@ fn main() {
                 copy_file(&file, &output);
                 pb.inc(1)
             }
+
             pb.finish_with_message(format!("{} Done.", app));
 
             if matches.is_present("clear-cache") {
